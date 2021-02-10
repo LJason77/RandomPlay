@@ -1,0 +1,15 @@
+[package]
+name = "random_play"
+version = "0.2.2"
+authors = ["LJason <ljason@ljason.cn>"]
+edition = "2018"
+repository = "https://github.com/LJason77/RandomPlay.git"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
+
+[dependencies]
+rand = "0.8"
+diesel = { git = "https://github.com/diesel-rs/diesel", version = "2.0", features = ["sqlite"] }
