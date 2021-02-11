@@ -1,6 +1,6 @@
 [package]
 name = "random_play"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["LJason <ljason@ljason.cn>"]
 edition = "2018"
 repository = "https://github.com/LJason77/RandomPlay.git"

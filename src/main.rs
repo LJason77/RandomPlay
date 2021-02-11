@@ -1,3 +1,4 @@
+use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process::Command;
 use std::{env, fs};
@@ -7,10 +8,9 @@ use rand::Rng;
 
 use crate::models::NewFile;
 use crate::schema::files::dsl::files;
-use std::io::ErrorKind;
 
 mod models;
-pub mod schema;
+mod schema;
 
 /// 视频的后缀
 const EXTENSIONS: [&str; 10] = [
@@ -38,16 +38,20 @@ fn main() {
 
 	let mut rng = rand::thread_rng();
 	let len = videos_path.len().to_owned();
-	if len > 1 {
-		for _ in 1..100 {
-			let n = rng.gen_range(0..len);
-			println!("{}", &videos_path[n]);
-			Command::new("mpv")
-				.arg(&videos_path[n])
-				.status()
-				.expect("错误");
-		}
+
+	if len < 1 {
+		println!("未找到视频文件");
+		return;
 	}
+	for _ in 1..100 {
+		let n = rng.gen_range(0..len);
+		play(&videos_path[n]);
+	}
+}
+
+fn play(file: &str) {
+	println!("{}", file);
+	Command::new("mpv").arg(file).status().expect("错误");
 }
 
 #[allow(deprecated)]
@@ -59,7 +63,7 @@ pub fn establish_connection() -> SqliteConnection {
 		.unwrap_or_else(|_| panic!("无法连接： {}", database_url))
 }
 
-/// 保存找到的视频路径和后缀
+/// 保存找到的视频路径
 #[allow(unused_must_use)]
 fn create_file(conn: &SqliteConnection, path: &str) {
 	diesel::insert_into(schema::files::table)
@@ -81,23 +85,25 @@ fn iterator_dir(conn: &SqliteConnection, path: &PathBuf) {
 	};
 
 	for result_entry in read_dir {
-		if let Ok(entry) = result_entry {
-			let file = entry.path();
-			if file.is_dir() {
-				// 是目录，继续遍历
-				iterator_dir(conn, &file);
-			} else {
-				// 是文件，判断后缀
-				let option_extension = file.extension();
-				// 如果存在后缀
-				if let Some(extension) = option_extension {
-					let match_extension =
-						&EXTENSIONS.iter().position(|&x| x == extension);
-					// 如果是视频的后缀
-					if let Some(_) = match_extension {
-						// 保存路径和后缀
-						create_file(conn, &file.to_str().unwrap());
-					}
+		// 如果错误则跳过本次操作
+		if result_entry.is_err() {
+			continue;
+		}
+
+		let file = result_entry.unwrap().path();
+		if file.is_dir() {
+			// 目录，继续遍历
+			iterator_dir(conn, &file);
+		} else {
+			// 文件，判断后缀
+			let option_extension = file.extension();
+			// 如果存在后缀
+			if let Some(extension) = option_extension {
+				let match_extension = &EXTENSIONS.iter().position(|&x| x == extension);
+				// 如果是视频的后缀
+				if match_extension.is_some() {
+					// 保存路径
+					create_file(conn, &file.to_str().unwrap());
 				}
 			}
 		}

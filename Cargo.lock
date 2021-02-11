@@ -138,7 +138,7 @@ dependencies = [
 
 [[package]]
 name = "random_play"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "diesel",
  "rand",
