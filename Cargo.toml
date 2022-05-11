@@ -4,6 +4,8 @@ version = "0.3.0"
 authors = ["LJason <ljason@ljason.cn>"]
 edition = "2021"
 repository = "https://github.com/LJason77/RandomPlay.git"
+license-file = "LICENSE"
+description = "随机播放视频"
 readme = "README.md"
 
 [profile.release]
